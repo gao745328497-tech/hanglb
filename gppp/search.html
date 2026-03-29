@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>航旅纵横 - 机票搜索</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:#e8e8e8;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;font-family:'PingFang SC','Microsoft YaHei',sans-serif;}
+.phone{width:375px;min-height:812px;background:#f5f5f5;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.18);}
+.status-bar{height:44px;background:#1A3A6B;display:flex;align-items:center;justify-content:space-between;padding:0 16px;color:#fff;font-size:12px;}
+.status-bar .time{font-weight:600;font-size:15px;}
+.status-bar .icons{display:flex;gap:6px;align-items:center;}
+
+/* 顶部导航 */
+.top-nav{background:#1A3A6B;height:52px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+.back-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.back-btn svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.5;}
+.nav-title{flex:1;color:#fff;font-size:17px;font-weight:600;text-align:center;}
+.nav-right{width:32px;height:32px;display:flex;align-items:center;justify-content:center;}
+.nav-right svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.8;}
+
+/* Tab切换 */
+.tab-bar-top{background:#1A3A6B;display:flex;padding:0 16px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.tab-top-item{color:rgba(255,255,255,0.6);font-size:14px;padding:10px 12px;cursor:pointer;position:relative;white-space:nowrap;}
+.tab-top-item.active{color:#fff;font-weight:600;}
+.tab-top-item.active::after{content:'';position:absolute;bottom:0;left:12px;right:12px;height:2.5px;background:#00C48C;border-radius:2px;}
+
+/* 搜索区 */
+.search-card{background:#fff;margin:12px 16px;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);overflow:hidden;}
+
+/* 单程/往返 */
+.trip-type{display:flex;padding:14px 16px 0;}
+.trip-btn{display:flex;align-items:center;gap:6px;margin-right:20px;cursor:pointer;font-size:14px;color:#666;}
+.trip-btn .radio{width:16px;height:16px;border-radius:50%;border:1.5px solid #ddd;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.trip-btn.active .radio{border-color:#00C48C;background:#00C48C;}
+.trip-btn.active .radio::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff;}
+.trip-btn.active{color:#333;font-weight:500;}
+
+/* 城市选择 */
+.city-selector{padding:12px 16px;display:flex;align-items:center;gap:0;position:relative;}
+.city-box{flex:1;cursor:pointer;padding:8px 0;}
+.city-box .label{font-size:11px;color:#aaa;margin-bottom:3px;}
+.city-box .name{font-size:26px;font-weight:700;color:#1A3A6B;line-height:1;}
+.city-box .airport{font-size:11px;color:#bbb;margin-top:3px;}
+.city-divider{width:1px;height:50px;background:#eee;margin:0 8px;}
+.swap-center{position:absolute;left:50%;transform:translateX(-50%);width:34px;height:34px;border-radius:50%;border:1.5px solid #00C48C;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,196,140,0.2);}
+.swap-center svg{width:16px;height:16px;stroke:#00C48C;fill:none;stroke-width:2.2;}
+
+/* 分割线 */
+.card-divider{height:1px;background:#f5f5f5;margin:0 16px;}
+
+/* 日期行 */
+.info-row{display:flex;align-items:center;padding:14px 16px;cursor:pointer;}
+.info-row-icon{width:18px;height:18px;flex-shrink:0;margin-right:10px;}
+.info-row-icon svg{width:18px;height:18px;fill:none;stroke:#00C48C;stroke-width:2;}
+.info-row-content{flex:1;}
+.info-row-label{font-size:11px;color:#aaa;margin-bottom:2px;}
+.info-row-value{font-size:15px;color:#333;font-weight:500;}
+.info-row-tag{display:inline-block;background:#E8F4FF;color:#2456A4;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:6px;}
+.info-row-arrow{color:#ccc;font-size:18px;}
+
+/* 乘机人 */
+.pax-row{display:flex;align-items:center;padding:12px 16px;gap:10px;cursor:pointer;}
+.pax-label{font-size:11px;color:#aaa;margin-right:4px;}
+.pax-item{display:flex;align-items:center;gap:6px;font-size:14px;color:#333;}
+.pax-stepper{display:flex;align-items:center;gap:6px;}
+.pax-btn{width:24px;height:24px;border-radius:50%;border:1.5px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:16px;color:#666;cursor:pointer;}
+.pax-num{font-size:15px;font-weight:600;color:#333;min-width:16px;text-align:center;}
+
+/* 选项行 */
+.option-row{display:flex;align-items:center;padding:12px 16px;gap:8px;cursor:pointer;}
+.checkbox{width:18px;height:18px;border-radius:4px;border:1.5px solid #ddd;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.checkbox.checked{background:#00C48C;border-color:#00C48C;}
+.checkbox.checked::after{content:'✓';color:#fff;font-size:11px;}
+.option-text{font-size:14px;color:#555;}
+.option-sub{font-size:11px;color:#bbb;margin-left:auto;}
+
+/* 搜索按钮 */
+.search-btn-wrap{padding:16px;}
+.search-btn{width:100%;height:50px;background:linear-gradient(90deg,#00C48C,#00a876);border:none;border-radius:10px;color:#fff;font-size:17px;font-weight:700;cursor:pointer;letter-spacing:2px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-shadow:0 4px 14px rgba(0,196,140,0.35);}
+.search-btn svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;}
+
+/* AI预订入口 */
+.ai-card{margin:0 16px 10px;background:linear-gradient(135deg,#E8F4FF,#ddeeff);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;border:1px solid #c8dff8;}
+.ai-icon{font-size:22px;}
+.ai-text .title{font-size:13px;font-weight:600;color:#2456A4;}
+.ai-text .sub{font-size:11px;color:#6688aa;}
+.ai-arrow{margin-left:auto;color:#2456A4;font-size:18px;}
+
+/* 辅助功能 */
+.tools-section{background:#fff;margin:10px 0 0;padding:14px 16px;}
+.tools-title{font-size:15px;font-weight:600;color:#222;margin-bottom:12px;}
+.tools-list{display:flex;gap:0;overflow-x:auto;}
+.tools-list::-webkit-scrollbar{display:none;}
+.tool-item{flex:0 0 72px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:4px;}
+.tool-icon{width:44px;height:44px;border-radius:10px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.tool-label{font-size:11px;color:#555;text-align:center;white-space:nowrap;}
+
+/* 安全提示 */
+.safety-bar{background:#f9fffe;border-top:1px solid #e0f5ee;padding:10px 16px;display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0;}
+.safety-bar svg{width:14px;height:14px;fill:#00C48C;}
+.safety-bar span{font-size:11px;color:#00a876;}
+
+/* 城市选择弹层 */
+.city-modal{position:absolute;top:0;left:0;right:0;bottom:0;background:#fff;z-index:200;display:none;flex-direction:column;}
+.city-modal.show{display:flex;}
+.city-modal-header{background:#1A3A6B;padding:50px 16px 14px;display:flex;align-items:center;gap:10px;}
+.city-search{flex:1;background:rgba(255,255,255,0.15);border-radius:20px;height:36px;display:flex;align-items:center;padding:0 12px;gap:8px;}
+.city-search input{background:none;border:none;outline:none;color:#fff;font-size:14px;flex:1;width:100%;}
+.city-search input::placeholder{color:rgba(255,255,255,0.6);}
+.city-search svg{width:14px;height:14px;stroke:rgba(255,255,255,0.7);fill:none;stroke-width:2;}
+.city-modal-cancel{color:rgba(255,255,255,0.8);font-size:14px;cursor:pointer;padding:4px;}
+.city-tabs{display:flex;background:#f5f5f5;border-bottom:1px solid #eee;}
+.city-tab{flex:1;text-align:center;padding:10px;font-size:13px;color:#666;cursor:pointer;}
+.city-tab.active{color:#00C48C;font-weight:600;border-bottom:2px solid #00C48C;}
+.hot-cities{padding:12px 16px;}
+.hot-title{font-size:12px;color:#aaa;margin-bottom:10px;}
+.hot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.hot-city{background:#f5f5f5;border-radius:6px;text-align:center;padding:8px 4px;font-size:14px;color:#333;cursor:pointer;}
+.hot-city:active{background:#e0f5ee;color:#00C48C;}
+
+/* 日历弹层 */
+.calendar-modal{position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;z-index:200;display:none;max-height:80%;}
+.calendar-modal.show{display:block;}
+.calendar-header{padding:16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0;}
+.calendar-title{font-size:16px;font-weight:600;color:#222;}
+.calendar-close{font-size:22px;color:#aaa;cursor:pointer;line-height:1;}
+.calendar-nav{display:flex;align-items:center;justify-content:center;gap:20px;padding:12px 16px;}
+.cal-btn{width:32px;height:32px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#666;}
+.cal-month{font-size:16px;font-weight:600;color:#333;}
+.weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:0 16px;margin-bottom:6px;}
+.weekday{font-size:11px;color:#aaa;padding:4px 0;}
+.days{display:grid;grid-template-columns:repeat(7,1fr);padding:0 16px;}
+.day{text-align:center;padding:8px 0;font-size:14px;color:#333;cursor:pointer;border-radius:50%;}
+.day.today{color:#00C48C;font-weight:700;}
+.day.selected{background:#00C48C;color:#fff;font-weight:700;}
+.day.has-price{position:relative;}
+.day-price{font-size:9px;color:#FF4D4F;position:absolute;bottom:0;left:50%;transform:translateX(-50%);white-space:nowrap;}
+.day.empty{cursor:default;}
+.day.past{color:#ddd;cursor:default;}
+.overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:150;display:none;}
+.overlay.show{display:block;}
+
+.page-scroll{overflow-y:auto;height:calc(812px - 44px - 52px - 44px);padding-bottom:20px;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4" y="2" width="3" height="10" rx="1"/><rect x="8" y="0" width="3" height="12" rx="1"/><rect x="12" y="0" width="3" height="12" rx="1" opacity=".3"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="white"/><path d="M23 4v4a2 2 0 000-4z" fill="white" opacity=".4"/></svg>
+    </div>
+  </div>
+
+  <div class="top-nav">
+    <div class="back-btn" onclick="location.href='index.html'">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="nav-title">机票</div>
+    <div class="nav-right">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    </div>
+  </div>
+
+  <!-- Tab切换 -->
+  <div class="tab-bar-top">
+    <div class="tab-top-item active">国内机票</div>
+    <div class="tab-top-item">国际/港澳台</div>
+    <div class="tab-top-item">火车票</div>
+    <div class="tab-top-item">酒店</div>
+  </div>
+
+  <div class="page-scroll">
+    <!-- 搜索卡片 -->
+    <div style="padding:12px 0 0;">
+      <div class="search-card">
+        <!-- 单程/往返 -->
+        <div class="trip-type">
+          <div class="trip-btn active" id="one-way" onclick="selectTripType('one-way')">
+            <div class="radio"></div>
+            单程
+          </div>
+          <div class="trip-btn" id="round-trip" onclick="selectTripType('round-trip')">
+            <div class="radio"></div>
+            往返
+          </div>
+        </div>
+
+        <!-- 城市选择 -->
+        <div class="city-selector">
+          <div class="city-box" onclick="showCityModal('from')">
+            <div class="label">出发地</div>
+            <div class="name">北京</div>
+            <div class="airport">首都/大兴</div>
+          </div>
+          <div class="city-divider"></div>
+          <div class="swap-center" onclick="swapCities()">
+            <svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          </div>
+          <div class="city-box" style="text-align:right;" onclick="showCityModal('to')">
+            <div class="label" style="text-align:right;">目的地</div>
+            <div class="name" id="dest-name">上海</div>
+            <div class="airport" id="dest-airport">浦东/虹桥</div>
+          </div>
+        </div>
+
+        <div class="card-divider"></div>
+
+        <!-- 日期 -->
+        <div class="info-row" onclick="showCalendar()">
+          <div class="info-row-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="info-row-content">
+            <div class="info-row-label">出发日期</div>
+            <div class="info-row-value">03月29日 周日<span class="info-row-tag">今天</span></div>
+          </div>
+          <div class="info-row-arrow">›</div>
+        </div>
+
+        <div class="card-divider"></div>
+
+        <!-- 乘机人 -->
+        <div class="info-row" onclick="">
+          <div class="info-row-icon">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <div class="info-row-content">
+            <div class="info-row-label">乘机人</div>
+            <div class="info-row-value">成人 × 1</div>
+          </div>
+          <div class="info-row-arrow">›</div>
+        </div>
+
+        <div class="card-divider"></div>
+
+        <!-- 仅看公务舱 -->
+        <div class="option-row" onclick="toggleCabin()">
+          <div class="checkbox" id="cabin-check"></div>
+          <span class="option-text">仅看头等舱 / 公务舱</span>
+          <span class="option-sub">价格较高</span>
+        </div>
+
+        <!-- 搜索按钮 -->
+        <div class="search-btn-wrap">
+          <a class="search-btn" href="list.html">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            立即搜索
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI预订 -->
+    <div class="ai-card">
+      <div class="ai-icon">🤖</div>
+      <div class="ai-text">
+        <div class="title">AI帮你选 · 智能推荐最优航班</div>
+        <div class="sub">描述你的出行需求，AI一键匹配</div>
+      </div>
+      <div class="ai-arrow">›</div>
+    </div>
+
+    <!-- 辅助功能 -->
+    <div class="tools-section">
+      <div class="tools-title">更多服务</div>
+      <div class="tools-list">
+        <div class="tool-item">
+          <div class="tool-icon">🧾</div>
+          <div class="tool-label">报销凭证</div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-icon">⬆️</div>
+          <div class="tool-label">申请升舱</div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-icon">💺</div>
+          <div class="tool-label">提前选座</div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-icon">📋</div>
+          <div class="tool-label">我的订单</div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-icon">🔄</div>
+          <div class="tool-label">退改签</div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-icon">🧳</div>
+          <div class="tool-label">行李托运</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="safety-bar">
+      <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7L12 2z"/></svg>
+      <span>官方直销 · 无隐藏费用 · 价格透明 · 退改清晰</span>
+    </div>
+  </div>
+
+  <!-- 覆盖层 -->
+  <div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+  <!-- 城市选择弹层 -->
+  <div class="city-modal" id="city-modal">
+    <div class="city-modal-header">
+      <div class="city-search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="搜索城市/机场">
+      </div>
+      <div class="city-modal-cancel" onclick="closeAll()">取消</div>
+    </div>
+    <div class="city-tabs">
+      <div class="city-tab active">热门</div>
+      <div class="city-tab">历史</div>
+      <div class="city-tab">按字母</div>
+    </div>
+    <div class="hot-cities">
+      <div class="hot-title">🔥 热门城市</div>
+      <div class="hot-grid">
+        <div class="hot-city" onclick="selectCity('上海')">上海</div>
+        <div class="hot-city" onclick="selectCity('广州')">广州</div>
+        <div class="hot-city" onclick="selectCity('深圳')">深圳</div>
+        <div class="hot-city" onclick="selectCity('成都')">成都</div>
+        <div class="hot-city" onclick="selectCity('重庆')">重庆</div>
+        <div class="hot-city" onclick="selectCity('杭州')">杭州</div>
+        <div class="hot-city" onclick="selectCity('武汉')">武汉</div>
+        <div class="hot-city" onclick="selectCity('西安')">西安</div>
+        <div class="hot-city" onclick="selectCity('昆明')">昆明</div>
+        <div class="hot-city" onclick="selectCity('厦门')">厦门</div>
+        <div class="hot-city" onclick="selectCity('三亚')">三亚</div>
+        <div class="hot-city" onclick="selectCity('哈尔滨')">哈尔滨</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日历弹层 -->
+  <div class="calendar-modal" id="calendar-modal">
+    <div class="calendar-header">
+      <div class="calendar-title">选择出发日期</div>
+      <div class="calendar-close" onclick="closeAll()">×</div>
+    </div>
+    <div class="calendar-nav">
+      <div class="cal-btn">‹</div>
+      <div class="cal-month">2026年 3月</div>
+      <div class="cal-btn">›</div>
+    </div>
+    <div class="weekdays">
+      <div class="weekday">日</div><div class="weekday">一</div><div class="weekday">二</div>
+      <div class="weekday">三</div><div class="weekday">四</div><div class="weekday">五</div><div class="weekday">六</div>
+    </div>
+    <div class="days">
+      <div class="day empty"></div><div class="day empty"></div><div class="day past">1</div>
+      <div class="day past">2</div><div class="day past">3</div><div class="day past">4</div><div class="day past">5</div>
+      <div class="day past">6</div><div class="day past">7</div><div class="day past">8</div>
+      <div class="day past">9</div><div class="day past">10</div><div class="day past">11</div><div class="day past">12</div>
+      <div class="day past">13</div><div class="day past">14</div><div class="day past">15</div>
+      <div class="day past">16</div><div class="day past">17</div><div class="day past">18</div><div class="day past">19</div>
+      <div class="day past">20</div><div class="day past">21</div><div class="day past">22</div>
+      <div class="day past">23</div><div class="day past">24</div><div class="day past">25</div><div class="day past">26</div>
+      <div class="day past">27</div><div class="day past">28</div><div class="day selected today" onclick="selectDate(this,'03月29日 周日','今天')">29</div>
+      <div class="day" onclick="selectDate(this,'03月30日 周一','')">30</div><div class="day" onclick="selectDate(this,'03月31日 周二','')">31</div>
+    </div>
+    <div style="padding:16px;border-top:1px solid #f0f0f0;margin-top:8px;">
+      <button onclick="closeAll()" style="width:100%;height:46px;background:#00C48C;border:none;border-radius:8px;color:#fff;font-size:16px;font-weight:600;cursor:pointer;">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectTripType(type){
+  document.getElementById('one-way').classList.toggle('active', type==='one-way');
+  document.getElementById('round-trip').classList.toggle('active', type==='round-trip');
+}
+function swapCities(){
+  const d=document.getElementById('dest-name');
+  const orig=d.textContent;
+  d.textContent='北京';
+  document.getElementById('dest-airport').textContent='首都/大兴';
+}
+function toggleCabin(){
+  const c=document.getElementById('cabin-check');
+  c.classList.toggle('checked');
+}
+function showCityModal(dir){
+  document.getElementById('city-modal').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+function showCalendar(){
+  document.getElementById('calendar-modal').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeAll(){
+  document.getElementById('city-modal').classList.remove('show');
+  document.getElementById('calendar-modal').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+}
+function selectCity(name){
+  document.getElementById('dest-name').textContent=name;
+  document.getElementById('dest-airport').textContent='';
+  closeAll();
+}
+function selectDate(el,label,tag){
+  document.querySelectorAll('.day').forEach(d=>d.classList.remove('selected'));
+  el.classList.add('selected');
+}
+</script>
+</body>
+</html>

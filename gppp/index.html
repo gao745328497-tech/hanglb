@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>航旅纵横 - 首页</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:#e8e8e8;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;font-family:'PingFang SC','Microsoft YaHei',sans-serif;}
+.phone{width:375px;min-height:812px;background:#f5f5f5;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.18);}
+.status-bar{height:44px;background:#1A3A6B;display:flex;align-items:center;justify-content:space-between;padding:0 16px;color:#fff;font-size:12px;}
+.status-bar .time{font-weight:600;font-size:15px;}
+.status-bar .icons{display:flex;gap:6px;align-items:center;}
+
+/* 顶部导航 */
+.top-nav{background:linear-gradient(135deg,#1A3A6B 0%,#2456A4 100%);padding:10px 16px 0;height:56px;display:flex;align-items:center;gap:10px;}
+.top-nav .location{color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;gap:3px;white-space:nowrap;}
+.top-nav .location svg{width:14px;height:14px;}
+.top-nav .search-box{flex:1;background:rgba(255,255,255,0.18);border-radius:18px;height:34px;display:flex;align-items:center;padding:0 12px;gap:6px;color:rgba(255,255,255,0.8);font-size:13px;}
+.top-nav .icons-right{display:flex;gap:14px;align-items:center;}
+.top-nav .icons-right svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:1.8;}
+
+/* 品牌氛围区 */
+.hero{background:linear-gradient(160deg,#1A3A6B 0%,#2456A4 50%,#4a90d9 100%);padding:14px 16px 0;position:relative;overflow:hidden;min-height:110px;}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:24px;background:#f5f5f5;border-radius:24px 24px 0 0;}
+.hero-text{color:rgba(255,255,255,0.9);font-size:12px;text-align:center;margin-bottom:6px;letter-spacing:1px;}
+.hero-title{color:#fff;font-size:17px;font-weight:700;text-align:center;margin-bottom:4px;}
+.hero-sub{color:rgba(255,255,255,0.75);font-size:12px;text-align:center;margin-bottom:20px;}
+.hero-clouds{position:absolute;right:-10px;top:10px;opacity:0.15;}
+
+/* 机票快捷入口卡片 */
+.ticket-card{background:#fff;border-radius:12px;margin:0 16px;box-shadow:0 4px 16px rgba(26,58,107,0.12);padding:16px;position:relative;z-index:2;margin-top:-8px;}
+.ticket-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.ticket-card-title{font-size:15px;font-weight:600;color:#1A3A6B;display:flex;align-items:center;gap:6px;}
+.official-badge{background:linear-gradient(90deg,#00C48C,#00a876);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;}
+
+/* 出发/目的地 */
+.route-row{display:flex;align-items:center;gap:0;margin-bottom:12px;}
+.city-box{flex:1;text-align:center;cursor:pointer;}
+.city-box .city-label{font-size:11px;color:#999;margin-bottom:2px;}
+.city-box .city-name{font-size:22px;font-weight:700;color:#1A3A6B;}
+.city-box .airport{font-size:11px;color:#bbb;margin-top:1px;}
+.swap-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid #00C48C;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;background:#fff;}
+.swap-btn svg{width:18px;height:18px;stroke:#00C48C;fill:none;stroke-width:2;}
+
+/* 日期行 */
+.date-row{display:flex;align-items:center;padding:10px 0;border-top:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;margin-bottom:12px;cursor:pointer;}
+.date-row .date-icon{width:18px;height:18px;margin-right:8px;flex-shrink:0;}
+.date-row .date-val{font-size:15px;color:#333;font-weight:500;}
+.date-row .date-tag{margin-left:8px;background:#E8F4FF;color:#2456A4;font-size:11px;padding:1px 6px;border-radius:8px;}
+.date-row .arrow{margin-left:auto;color:#ccc;font-size:14px;}
+
+/* 搜索按钮 */
+.search-btn{width:100%;height:44px;background:linear-gradient(90deg,#00C48C,#00a876);border:none;border-radius:8px;color:#fff;font-size:16px;font-weight:600;cursor:pointer;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;}
+.search-btn svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;}
+
+/* 特价推荐横滑 */
+.sale-flights{margin-top:12px;border-top:1px dashed #f0f0f0;padding-top:10px;}
+.sale-title{font-size:12px;color:#999;margin-bottom:8px;}
+.sale-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;}
+.sale-list::-webkit-scrollbar{display:none;}
+.sale-item{flex-shrink:0;background:#f7fcfa;border:1px solid #e0f5ee;border-radius:8px;padding:6px 10px;cursor:pointer;}
+.sale-item .route{font-size:12px;color:#333;font-weight:600;}
+.sale-item .price{font-size:13px;color:#FF4D4F;font-weight:700;}
+.sale-item .date-hint{font-size:10px;color:#aaa;}
+
+/* 宫格 */
+.grid-section{background:#fff;margin:10px 0 0;padding:16px 0 8px;}
+.grid-title{font-size:15px;font-weight:600;color:#222;padding:0 16px;margin-bottom:12px;}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:0 8px;}
+.grid-item{display:flex;flex-direction:column;align-items:center;padding:8px 4px;cursor:pointer;}
+.grid-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;font-size:22px;}
+.grid-icon.green{background:linear-gradient(135deg,#e8faf4,#c8f2e4);}
+.grid-icon.blue{background:linear-gradient(135deg,#e8f4ff,#c8dff8);}
+.grid-icon.orange{background:linear-gradient(135deg,#fff4e6,#ffddb0);}
+.grid-icon.purple{background:linear-gradient(135deg,#f3eeff,#e0cfff);}
+.grid-label{font-size:12px;color:#555;}
+
+/* 最近搜索 */
+.recent-section{background:#fff;margin:10px 0 0;padding:14px 16px;}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.section-header .title{font-size:15px;font-weight:600;color:#222;}
+.section-header .more{font-size:12px;color:#00C48C;}
+.recent-list{display:flex;gap:8px;overflow-x:auto;}
+.recent-list::-webkit-scrollbar{display:none;}
+.recent-item{flex-shrink:0;border:1px solid #e8e8e8;border-radius:10px;padding:10px 12px;background:#fafafa;cursor:pointer;}
+.recent-route{font-size:14px;font-weight:600;color:#1A3A6B;}
+.recent-price{font-size:13px;color:#FF4D4F;font-weight:700;}
+.recent-date{font-size:11px;color:#bbb;}
+
+/* Banner */
+.banner-section{margin:10px 0 0;padding:0 16px;}
+.banner{background:linear-gradient(135deg,#1A3A6B,#2456A4);border-radius:12px;padding:14px 16px;color:#fff;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.banner-text .tag{background:rgba(255,196,0,0.25);color:#FFB800;font-size:10px;padding:2px 8px;border-radius:10px;margin-bottom:4px;display:inline-block;}
+.banner-text .headline{font-size:15px;font-weight:700;}
+.banner-text .sub{font-size:11px;opacity:0.8;margin-top:2px;}
+.banner-btn{background:#00C48C;color:#fff;font-size:12px;padding:6px 14px;border-radius:16px;white-space:nowrap;}
+
+/* 底部Tab */
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:#fff;border-top:1px solid #eee;display:flex;height:56px;z-index:100;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;}
+.tab-item svg{width:22px;height:22px;fill:none;stroke-width:1.8;}
+.tab-item.active svg{stroke:#00C48C;}
+.tab-item:not(.active) svg{stroke:#999;}
+.tab-item .tab-label{font-size:10px;}
+.tab-item.active .tab-label{color:#00C48C;}
+.tab-item:not(.active) .tab-label{color:#999;}
+
+.page-content{padding-bottom:70px;}
+
+.divider{height:10px;background:#f5f5f5;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4" y="2" width="3" height="10" rx="1"/><rect x="8" y="0" width="3" height="12" rx="1"/><rect x="12" y="0" width="3" height="12" rx="1" opacity=".3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2C5.5 2 3.3 3 1.7 4.7L0 3C2 1.1 4.9 0 8 0s6 1.1 8 3l-1.7 1.7C12.7 3 10.5 2 8 2z"/><path d="M8 6c-1.4 0-2.6.5-3.5 1.4L3 6c1.3-1.3 3-2 5-2s3.7.7 5 2l-1.5 1.4C10.6 6.5 9.4 6 8 6z"/><circle cx="8" cy="11" r="1.5"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="white"/><path d="M23 4v4a2 2 0 000-4z" fill="white" opacity=".4"/></svg>
+    </div>
+  </div>
+
+  <!-- 顶部导航 -->
+  <div class="top-nav">
+    <div class="location">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      北京
+      <svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M7 10l5 5 5-5z"/></svg>
+    </div>
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      搜索航班/订单/服务
+    </div>
+    <div class="icons-right">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+    </div>
+  </div>
+
+  <!-- 品牌氛围区 -->
+  <div class="hero">
+    <div class="hero-text">中国民用航空局指定官方平台</div>
+    <div class="hero-title">官方直销 · 安心出行</div>
+    <div class="hero-sub">0捆绑 · 0套路 · 价格透明</div>
+  </div>
+
+  <div class="page-content">
+    <!-- 机票快捷入口卡片 -->
+    <div class="ticket-card">
+      <div class="ticket-card-header">
+        <div class="ticket-card-title">
+          🎫 机票预订
+        </div>
+        <div class="official-badge">官方直销</div>
+      </div>
+
+      <div class="route-row">
+        <div class="city-box" onclick="location.href='search.html'">
+          <div class="city-label">出发地</div>
+          <div class="city-name">北京</div>
+          <div class="airport">首都/大兴</div>
+        </div>
+        <div class="swap-btn">
+          <svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+        </div>
+        <div class="city-box" onclick="location.href='search.html'">
+          <div class="city-label">目的地</div>
+          <div class="city-name" style="color:#bbb;font-size:16px;padding-top:3px;">请选择</div>
+          <div class="airport" style="opacity:0">-</div>
+        </div>
+      </div>
+
+      <div class="date-row" onclick="location.href='search.html'">
+        <svg class="date-icon" viewBox="0 0 24 24" fill="none" stroke="#00C48C" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="date-val">03月29日 周日</span>
+        <span class="date-tag">今天</span>
+        <span class="arrow">›</span>
+      </div>
+
+      <a class="search-btn" href="search.html">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        搜索航班
+      </a>
+
+      <div class="sale-flights">
+        <div class="sale-title">💰 特价机票推荐</div>
+        <div class="sale-list">
+          <div class="sale-item" onclick="location.href='list.html'">
+            <div class="route">北京→上海</div>
+            <div class="price">¥380起</div>
+            <div class="date-hint">今日</div>
+          </div>
+          <div class="sale-item" onclick="location.href='list.html'">
+            <div class="route">北京→广州</div>
+            <div class="price">¥580起</div>
+            <div class="date-hint">今日</div>
+          </div>
+          <div class="sale-item" onclick="location.href='list.html'">
+            <div class="route">北京→成都</div>
+            <div class="price">¥450起</div>
+            <div class="date-hint">明日</div>
+          </div>
+          <div class="sale-item" onclick="location.href='list.html'">
+            <div class="route">北京→深圳</div>
+            <div class="price">¥620起</div>
+            <div class="date-hint">3月31日</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 业务宫格 -->
+    <div class="grid-section">
+      <div class="grid-title">全部服务</div>
+      <div class="grid">
+        <div class="grid-item" onclick="location.href='search.html'">
+          <div class="grid-icon green">✈️</div>
+          <div class="grid-label" style="color:#00a876;font-weight:600;">机票</div>
+        </div>
+        <div class="grid-item">
+          <div class="grid-icon blue">🚄</div>
+          <div class="grid-label">火车票</div>
+        </div>
+        <div class="grid-item">
+          <div class="grid-icon orange">🏨</div>
+          <div class="grid-label">酒店</div>
+        </div>
+        <div class="grid-item">
+          <div class="grid-icon purple">🚗</div>
+          <div class="grid-label">租车</div>
+        </div>
+        <div class="grid-item">
+          <div class="grid-icon blue">💺</div>
+          <div class="grid-label">值机选座</div>
+        </div>
+        <div class="grid-item">
+          <div class="grid-icon green">📍</div>
+          <div class="grid-label">航班动态</div>
+        </div>
+        <div class="grid-item">
+          <div class="grid-icon orange">🧳</div>
+          <div class="grid-label">行李额</div>
+        </div>
+        <div class="grid-item">
+          <div class="grid-icon purple">🚌</div>
+          <div class="grid-label">机场大巴</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 最近搜索 -->
+    <div class="recent-section">
+      <div class="section-header">
+        <span class="title">最近搜索</span>
+        <span class="more">清空</span>
+      </div>
+      <div class="recent-list">
+        <div class="recent-item" onclick="location.href='list.html'">
+          <div class="recent-route">北京 → 上海</div>
+          <div class="recent-price">¥380起</div>
+          <div class="recent-date">3月29日</div>
+        </div>
+        <div class="recent-item" onclick="location.href='list.html'">
+          <div class="recent-route">北京 → 成都</div>
+          <div class="recent-price">¥450起</div>
+          <div class="recent-date">4月2日</div>
+        </div>
+        <div class="recent-item" onclick="location.href='list.html'">
+          <div class="recent-route">上海 → 北京</div>
+          <div class="recent-price">¥390起</div>
+          <div class="recent-date">4月5日</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Banner -->
+    <div class="banner-section">
+      <div class="banner">
+        <div class="banner-text">
+          <div class="tag">会员专享</div>
+          <div class="headline">飞享会员·权益再升级</div>
+          <div class="sub">专属折扣 · 积分加速 · 免费选座</div>
+        </div>
+        <div class="banner-btn">立即开通</div>
+      </div>
+    </div>
+
+    <div style="height:10px;"></div>
+  </div>
+
+  <!-- 底部Tab -->
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="tab-label">首页</span>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <span class="tab-label">行程</span>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="tab-label">动态</span>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="tab-label">我的</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

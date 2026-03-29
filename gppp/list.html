@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>航旅纵横 - 航班列表</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:#e8e8e8;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;font-family:'PingFang SC','Microsoft YaHei',sans-serif;}
+.phone{width:375px;background:#f5f5f5;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.18);}
+.status-bar{height:44px;background:#1A3A6B;display:flex;align-items:center;justify-content:space-between;padding:0 16px;color:#fff;font-size:12px;}
+.status-bar .time{font-weight:600;font-size:15px;}
+.status-bar .icons{display:flex;gap:6px;align-items:center;}
+
+/* 顶部深蓝区 */
+.header{background:linear-gradient(160deg,#1A3A6B 0%,#2456A4 100%);}
+.top-nav{height:52px;display:flex;align-items:center;padding:0 16px;gap:8px;}
+.back-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.back-btn svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.5;}
+.route-info{flex:1;text-align:center;}
+.route-info .route{color:#fff;font-size:17px;font-weight:700;}
+.route-info .sub{color:rgba(255,255,255,0.7);font-size:12px;margin-top:1px;}
+.nav-right{display:flex;gap:8px;}
+.nav-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.nav-icon svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.8;}
+
+/* 日期横滑 */
+.date-scroll-wrap{padding:8px 0 12px;overflow:hidden;}
+.date-scroll{display:flex;gap:0;overflow-x:auto;padding:0 12px;}
+.date-scroll::-webkit-scrollbar{display:none;}
+.date-item{flex:0 0 60px;text-align:center;padding:6px 4px;border-radius:8px;cursor:pointer;transition:background 0.15s;}
+.date-item .d-date{font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);}
+.date-item .d-weekday{font-size:10px;color:rgba(255,255,255,0.6);margin-top:1px;}
+.date-item .d-price{font-size:11px;color:#FFB800;margin-top:2px;}
+.date-item.active{background:rgba(255,255,255,0.18);}
+.date-item.active .d-date{color:#fff;font-weight:700;}
+
+/* 筛选排序条 */
+.filter-bar{background:#fff;height:44px;display:flex;align-items:stretch;border-bottom:1px solid #f0f0f0;position:sticky;top:0;z-index:50;}
+.filter-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:13px;color:#555;cursor:pointer;border-right:1px solid #f0f0f0;}
+.filter-btn:last-child{border-right:none;}
+.filter-btn.active{color:#00C48C;}
+.filter-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;}
+.filter-badge{background:#00C48C;color:#fff;font-size:9px;padding:0 4px;border-radius:8px;min-width:14px;text-align:center;line-height:14px;}
+
+/* 余票监控条 */
+.monitor-bar{background:#fffbf0;border-bottom:1px solid #ffe58f;padding:8px 16px;display:flex;align-items:center;gap:8px;}
+.monitor-bar svg{width:14px;height:14px;stroke:#FF9500;fill:none;stroke-width:2;}
+.monitor-bar span{font-size:12px;color:#666;flex:1;}
+.monitor-switch{width:38px;height:22px;background:#ddd;border-radius:11px;position:relative;cursor:pointer;transition:background 0.2s;}
+.monitor-switch.on{background:#00C48C;}
+.monitor-switch::after{content:'';width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.monitor-switch.on::after{left:18px;}
+
+/* 航班列表 */
+.flight-list{padding:10px 12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;}
+
+/* 航班卡片 */
+.flight-card{background:#fff;border-radius:10px;padding:14px 14px 10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;position:relative;overflow:hidden;}
+.flight-card:active{background:#f9fffe;}
+.card-top{display:flex;align-items:center;gap:6px;margin-bottom:12px;}
+.airline-logo{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.airline-name{font-size:13px;color:#555;flex:1;}
+.badge-row{display:flex;gap:4px;align-items:center;}
+.badge{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:500;}
+.badge.official{background:#e8faf4;color:#00a876;border:1px solid #c0eedd;}
+.badge.recommend{background:#fff7e0;color:#d48806;border:1px solid #ffe58f;}
+.badge.punctual{background:#f0f4ff;color:#2456A4;border:1px solid #c8d8f5;}
+
+.flight-main{display:flex;align-items:center;margin-bottom:10px;}
+.time-box{text-align:center;}
+.time-box .time{font-size:24px;font-weight:700;color:#111;font-family:'DIN Alternate',sans-serif;}
+.time-box .airport{font-size:11px;color:#999;margin-top:2px;}
+.time-box .terminal{font-size:11px;color:#bbb;}
+.flight-timeline{flex:1;display:flex;flex-direction:column;align-items:center;padding:0 8px;}
+.tl-duration{font-size:11px;color:#aaa;margin-bottom:4px;}
+.tl-line{width:100%;display:flex;align-items:center;gap:4px;}
+.tl-dot{width:6px;height:6px;border-radius:50%;background:#ddd;flex-shrink:0;}
+.tl-bar{flex:1;height:1.5px;background:linear-gradient(90deg,#ddd,#00C48C,#ddd);}
+.tl-plane{font-size:14px;flex-shrink:0;}
+.tl-type{font-size:10px;color:#aaa;margin-top:3px;}
+
+.flight-info-row{display:flex;align-items:center;gap:6px;padding-top:8px;border-top:1px solid #f5f5f5;}
+.info-tag{font-size:11px;color:#999;display:flex;align-items:center;gap:3px;}
+.info-tag svg{width:12px;height:12px;stroke:#bbb;fill:none;stroke-width:1.8;}
+.dot-sep{color:#e0e0e0;font-size:14px;}
+
+.card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #f5f5f5;}
+.price-area{}
+.price-main{display:flex;align-items:baseline;gap:2px;}
+.price-symbol{font-size:14px;color:#FF4D4F;font-weight:600;}
+.price-num{font-size:26px;font-weight:700;color:#FF4D4F;font-family:'DIN Alternate','Arial Narrow',sans-serif;line-height:1;}
+.price-unit{font-size:11px;color:#aaa;}
+.price-hints{display:flex;gap:6px;margin-top:3px;}
+.price-hint{font-size:10px;color:#FF9500;}
+.book-btn{background:linear-gradient(135deg,#00C48C,#00a876);color:#fff;border:none;border-radius:20px;padding:8px 18px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 3px 10px rgba(0,196,140,0.3);}
+.book-btn:active{transform:scale(0.97);}
+
+/* 特惠价格行 */
+.special-prices{display:flex;gap:8px;padding:8px 14px;background:#fffbf0;border-top:1px dashed #ffe0a0;}
+.sp-item{font-size:11px;color:#d48806;display:flex;align-items:center;gap:3px;}
+.sp-item::before{content:'🎓';font-size:10px;}
+
+/* 加载态 */
+.loading-bar{height:3px;background:linear-gradient(90deg,#00C48C,transparent);animation:loading 1.5s infinite;}
+@keyframes loading{0%{width:0%}100%{width:100%}}
+
+/* 筛选抽屉 */
+.filter-drawer{position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;z-index:200;display:none;max-height:80%;}
+.filter-drawer.show{display:block;}
+.filter-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px;border-bottom:1px solid #f0f0f0;}
+.filter-drawer-title{font-size:16px;font-weight:600;color:#222;}
+.filter-reset{font-size:13px;color:#999;}
+.filter-section{padding:12px 16px;}
+.filter-section-title{font-size:12px;color:#999;margin-bottom:10px;font-weight:500;}
+.filter-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.filter-tag{padding:6px 14px;border-radius:16px;border:1px solid #e5e5e5;font-size:13px;color:#555;cursor:pointer;}
+.filter-tag.active{border-color:#00C48C;background:#e8faf4;color:#00a876;font-weight:500;}
+.filter-footer{padding:12px 16px;display:flex;gap:10px;}
+.filter-cancel-btn{flex:1;height:44px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;font-size:15px;color:#555;cursor:pointer;}
+.filter-confirm-btn{flex:2;height:44px;background:#00C48C;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
+
+.overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:150;display:none;}
+.overlay.show{display:block;}
+
+.scroll-content{height:calc(812px - 44px - 52px - 44px - 44px);overflow-y:auto;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4" y="2" width="3" height="10" rx="1"/><rect x="8" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="white"/><path d="M23 4v4a2 2 0 000-4z" fill="white" opacity=".4"/></svg>
+    </div>
+  </div>
+
+  <!-- 顶部深蓝区 -->
+  <div class="header">
+    <div class="top-nav">
+      <div class="back-btn" onclick="location.href='search.html'">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="route-info">
+        <div class="route">北京 → 上海</div>
+        <div class="sub">3月29日 · 1位成人 · 经济舱</div>
+      </div>
+      <div class="nav-right">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 日期横滑 -->
+    <div class="date-scroll-wrap">
+      <div class="date-scroll">
+        <div class="date-item" onclick="selectDate(this)">
+          <div class="d-date">3/27</div>
+          <div class="d-weekday">周五</div>
+          <div class="d-price">¥420</div>
+        </div>
+        <div class="date-item" onclick="selectDate(this)">
+          <div class="d-date">3/28</div>
+          <div class="d-weekday">周六</div>
+          <div class="d-price">¥450</div>
+        </div>
+        <div class="date-item active" onclick="selectDate(this)">
+          <div class="d-date">3/29</div>
+          <div class="d-weekday">今天</div>
+          <div class="d-price">¥380</div>
+        </div>
+        <div class="date-item" onclick="selectDate(this)">
+          <div class="d-date">3/30</div>
+          <div class="d-weekday">周一</div>
+          <div class="d-price">¥410</div>
+        </div>
+        <div class="date-item" onclick="selectDate(this)">
+          <div class="d-date">3/31</div>
+          <div class="d-weekday">周二</div>
+          <div class="d-price">¥395</div>
+        </div>
+        <div class="date-item" onclick="selectDate(this)">
+          <div class="d-date">4/1</div>
+          <div class="d-weekday">周三</div>
+          <div class="d-price">¥380</div>
+        </div>
+        <div class="date-item" onclick="selectDate(this)">
+          <div class="d-date">4/2</div>
+          <div class="d-weekday">周四</div>
+          <div class="d-price">¥360</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 筛选排序条 -->
+  <div class="filter-bar">
+    <div class="filter-btn active" onclick="toggleSort('time')">
+      时间 <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+    </div>
+    <div class="filter-btn" onclick="toggleSort('price')">
+      价格 <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="filter-btn" onclick="showFilter()">
+      筛选 <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      <span class="filter-badge" id="filter-count" style="display:none">2</span>
+    </div>
+    <div class="filter-btn" onclick="toggleMonitor()">
+      余票监控
+    </div>
+  </div>
+
+  <div class="scroll-content">
+    <!-- 余票监控条 -->
+    <div class="monitor-bar" id="monitor-bar" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span>已开启余票监控，有余票时将推送通知</span>
+      <div class="monitor-switch on" id="monitor-sw" onclick="toggleMonitor()"></div>
+    </div>
+
+    <!-- 航班列表 -->
+    <div class="flight-list">
+
+      <!-- 航班1 -->
+      <div class="flight-card" onclick="location.href='cabin.html'">
+        <div class="card-top">
+          <div class="airline-logo" style="background:#e8f0ff;color:#2456A4;">国航</div>
+          <div class="airline-name">中国国际航空 · CA1234</div>
+          <div class="badge-row">
+            <span class="badge official">官方直销</span>
+            <span class="badge recommend">商旅推荐</span>
+          </div>
+        </div>
+        <div class="flight-main">
+          <div class="time-box">
+            <div class="time">08:00</div>
+            <div class="airport">北京首都</div>
+            <div class="terminal">T3航站楼</div>
+          </div>
+          <div class="flight-timeline">
+            <div class="tl-duration">2h30m · 直飞</div>
+            <div class="tl-line">
+              <div class="tl-dot"></div>
+              <div class="tl-bar"></div>
+              <div class="tl-plane">✈</div>
+            </div>
+            <div class="tl-type">空客A320</div>
+          </div>
+          <div class="time-box" style="text-align:right">
+            <div class="time">10:30</div>
+            <div class="airport">上海浦东</div>
+            <div class="terminal">T2航站楼</div>
+          </div>
+        </div>
+        <div class="flight-info-row">
+          <div class="info-tag"><svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 3H8L6 7h12l-2-4z"/></svg>23kg</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>有餐食</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag">准点率 92%</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag" style="color:#bbb">余票 9张</div>
+        </div>
+        <div class="card-bottom">
+          <div class="price-area">
+            <div class="price-main">
+              <span class="price-symbol">¥</span>
+              <span class="price-num">380</span>
+              <span class="price-unit">/人起</span>
+            </div>
+            <div class="price-hints">
+              <span>学生票 ¥340</span>
+            </div>
+          </div>
+          <button class="book-btn">预订 ›</button>
+        </div>
+      </div>
+
+      <!-- 航班2 -->
+      <div class="flight-card" onclick="location.href='cabin.html'">
+        <div class="card-top">
+          <div class="airline-logo" style="background:#fff0e0;color:#d4500a;">东航</div>
+          <div class="airline-name">中国东方航空 · MU5678</div>
+          <div class="badge-row">
+            <span class="badge official">官方直销</span>
+          </div>
+        </div>
+        <div class="flight-main">
+          <div class="time-box">
+            <div class="time">09:20</div>
+            <div class="airport">北京首都</div>
+            <div class="terminal">T2航站楼</div>
+          </div>
+          <div class="flight-timeline">
+            <div class="tl-duration">2h25m · 直飞</div>
+            <div class="tl-line">
+              <div class="tl-dot"></div>
+              <div class="tl-bar"></div>
+              <div class="tl-plane">✈</div>
+            </div>
+            <div class="tl-type">波音737</div>
+          </div>
+          <div class="time-box" style="text-align:right">
+            <div class="time">11:45</div>
+            <div class="airport">上海虹桥</div>
+            <div class="terminal">T2航站楼</div>
+          </div>
+        </div>
+        <div class="flight-info-row">
+          <div class="info-tag">23kg</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag">有餐食</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag">准点率 88%</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag" style="color:#bbb">余票 15张</div>
+        </div>
+        <div class="card-bottom">
+          <div class="price-area">
+            <div class="price-main">
+              <span class="price-symbol">¥</span>
+              <span class="price-num">395</span>
+              <span class="price-unit">/人起</span>
+            </div>
+            <div class="price-hints">
+              <span>青年票 ¥360</span>
+            </div>
+          </div>
+          <button class="book-btn">预订 ›</button>
+        </div>
+      </div>
+
+      <!-- 航班3 -->
+      <div class="flight-card" onclick="location.href='cabin.html'">
+        <div class="card-top">
+          <div class="airline-logo" style="background:#e8f5ff;color:#0066cc;">南航</div>
+          <div class="airline-name">中国南方航空 · CZ3456</div>
+          <div class="badge-row">
+            <span class="badge official">官方直销</span>
+            <span class="badge punctual">高准点</span>
+          </div>
+        </div>
+        <div class="flight-main">
+          <div class="time-box">
+            <div class="time">11:00</div>
+            <div class="airport">北京大兴</div>
+            <div class="terminal">T1航站楼</div>
+          </div>
+          <div class="flight-timeline">
+            <div class="tl-duration">2h40m · 直飞</div>
+            <div class="tl-line">
+              <div class="tl-dot"></div>
+              <div class="tl-bar"></div>
+              <div class="tl-plane">✈</div>
+            </div>
+            <div class="tl-type">空客A330</div>
+          </div>
+          <div class="time-box" style="text-align:right">
+            <div class="time">13:40</div>
+            <div class="airport">上海浦东</div>
+            <div class="terminal">T1航站楼</div>
+          </div>
+        </div>
+        <div class="flight-info-row">
+          <div class="info-tag">23kg</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag">有餐食</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag">准点率 95%</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag" style="color:#bbb">余票充足</div>
+        </div>
+        <div class="card-bottom">
+          <div class="price-area">
+            <div class="price-main">
+              <span class="price-symbol">¥</span>
+              <span class="price-num">410</span>
+              <span class="price-unit">/人起</span>
+            </div>
+          </div>
+          <button class="book-btn">预订 ›</button>
+        </div>
+      </div>
+
+      <!-- 航班4 -->
+      <div class="flight-card" onclick="location.href='cabin.html'">
+        <div class="card-top">
+          <div class="airline-logo" style="background:#fff5f5;color:#cc2200;">海航</div>
+          <div class="airline-name">海南航空 · HU7890</div>
+          <div class="badge-row">
+            <span class="badge official">官方直销</span>
+          </div>
+        </div>
+        <div class="flight-main">
+          <div class="time-box">
+            <div class="time">14:30</div>
+            <div class="airport">北京首都</div>
+            <div class="terminal">T1航站楼</div>
+          </div>
+          <div class="flight-timeline">
+            <div class="tl-duration">2h35m · 直飞</div>
+            <div class="tl-line">
+              <div class="tl-dot"></div>
+              <div class="tl-bar"></div>
+              <div class="tl-plane">✈</div>
+            </div>
+            <div class="tl-type">波音787</div>
+          </div>
+          <div class="time-box" style="text-align:right">
+            <div class="time">17:05</div>
+            <div class="airport">上海浦东</div>
+            <div class="terminal">T2航站楼</div>
+          </div>
+        </div>
+        <div class="flight-info-row">
+          <div class="info-tag">23kg</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag">有餐食</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag">准点率 90%</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag" style="color:#bbb">余票 6张</div>
+        </div>
+        <div class="card-bottom">
+          <div class="price-area">
+            <div class="price-main">
+              <span class="price-symbol">¥</span>
+              <span class="price-num">360</span>
+              <span class="price-unit">/人起</span>
+            </div>
+            <div class="price-hints">
+              <span style="color:#FF4D4F;">⚡ 特惠 仅剩6张</span>
+            </div>
+          </div>
+          <button class="book-btn">预订 ›</button>
+        </div>
+        <div class="special-prices">
+          <div class="sp-item">学生票¥330</div>
+          <div style="color:#ddd;font-size:12px;margin:0 4px;">|</div>
+          <div class="sp-item" style="font-size:11px;color:#d48806;">🎯 青年票¥345</div>
+        </div>
+      </div>
+
+      <!-- 航班5 -->
+      <div class="flight-card" onclick="location.href='cabin.html'">
+        <div class="card-top">
+          <div class="airline-logo" style="background:#f0fff8;color:#00884a;">吉祥</div>
+          <div class="airline-name">吉祥航空 · HO1234</div>
+          <div class="badge-row">
+            <span class="badge official">官方直销</span>
+          </div>
+        </div>
+        <div class="flight-main">
+          <div class="time-box">
+            <div class="time">19:50</div>
+            <div class="airport">北京大兴</div>
+            <div class="terminal">T1航站楼</div>
+          </div>
+          <div class="flight-timeline">
+            <div class="tl-duration">2h20m · 直飞</div>
+            <div class="tl-line">
+              <div class="tl-dot"></div>
+              <div class="tl-bar"></div>
+              <div class="tl-plane">✈</div>
+            </div>
+            <div class="tl-type">空客A321</div>
+          </div>
+          <div class="time-box" style="text-align:right">
+            <div class="time">22:10</div>
+            <div class="airport">上海虹桥</div>
+            <div class="terminal">T2航站楼</div>
+          </div>
+        </div>
+        <div class="flight-info-row">
+          <div class="info-tag">20kg</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag">无餐食</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag">准点率 86%</div>
+          <div class="dot-sep">·</div>
+          <div class="info-tag" style="color:#bbb">余票充足</div>
+        </div>
+        <div class="card-bottom">
+          <div class="price-area">
+            <div class="price-main">
+              <span class="price-symbol">¥</span>
+              <span class="price-num">340</span>
+              <span class="price-unit">/人起</span>
+            </div>
+          </div>
+          <button class="book-btn">预订 ›</button>
+        </div>
+      </div>
+
+      <div style="height:10px;"></div>
+    </div>
+  </div>
+
+  <!-- 覆盖层 -->
+  <div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+  <!-- 筛选抽屉 -->
+  <div class="filter-drawer" id="filter-drawer">
+    <div class="filter-drawer-header">
+      <div class="filter-drawer-title">筛选航班</div>
+      <div class="filter-reset" onclick="resetFilter()">重置</div>
+    </div>
+    <div style="overflow-y:auto;max-height:500px;">
+      <div class="filter-section">
+        <div class="filter-section-title">起飞时段</div>
+        <div class="filter-tags">
+          <div class="filter-tag" onclick="toggleTag(this)">00:00–06:00</div>
+          <div class="filter-tag active" onclick="toggleTag(this)">06:00–12:00</div>
+          <div class="filter-tag" onclick="toggleTag(this)">12:00–18:00</div>
+          <div class="filter-tag" onclick="toggleTag(this)">18:00–24:00</div>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-section-title">出发机场</div>
+        <div class="filter-tags">
+          <div class="filter-tag active" onclick="toggleTag(this)">首都T2</div>
+          <div class="filter-tag active" onclick="toggleTag(this)">首都T3</div>
+          <div class="filter-tag" onclick="toggleTag(this)">大兴T1</div>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-section-title">航空公司</div>
+        <div class="filter-tags">
+          <div class="filter-tag" onclick="toggleTag(this)">国航</div>
+          <div class="filter-tag" onclick="toggleTag(this)">东航</div>
+          <div class="filter-tag" onclick="toggleTag(this)">南航</div>
+          <div class="filter-tag" onclick="toggleTag(this)">海航</div>
+          <div class="filter-tag" onclick="toggleTag(this)">吉祥</div>
+          <div class="filter-tag" onclick="toggleTag(this)">春秋</div>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-section-title">舱位类型</div>
+        <div class="filter-tags">
+          <div class="filter-tag active" onclick="toggleTag(this)">经济舱</div>
+          <div class="filter-tag" onclick="toggleTag(this)">公务舱</div>
+          <div class="filter-tag" onclick="toggleTag(this)">头等舱</div>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-section-title">其他</div>
+        <div class="filter-tags">
+          <div class="filter-tag active" onclick="toggleTag(this)">仅直飞</div>
+          <div class="filter-tag" onclick="toggleTag(this)">官方直销</div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-footer">
+      <button class="filter-cancel-btn" onclick="closeAll()">取消</button>
+      <button class="filter-confirm-btn" onclick="closeAll()">确定（已选5项）</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectDate(el){
+  document.querySelectorAll('.date-item').forEach(d=>d.classList.remove('active'));
+  el.classList.add('active');
+}
+function toggleSort(type){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+function showFilter(){
+  document.getElementById('filter-drawer').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeAll(){
+  document.getElementById('filter-drawer').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+}
+function toggleTag(el){el.classList.toggle('active');}
+function resetFilter(){document.querySelectorAll('.filter-tag').forEach(t=>t.classList.remove('active'));}
+function toggleMonitor(){
+  const bar=document.getElementById('monitor-bar');
+  const sw=document.getElementById('monitor-sw');
+  if(bar.style.display==='none'){bar.style.display='flex';sw.classList.add('on');}
+  else{bar.style.display='none';}
+}
+</script>
+</body>
+</html>
